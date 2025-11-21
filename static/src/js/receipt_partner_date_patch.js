@@ -63,6 +63,24 @@ patch(Order.prototype, {
                 result.date = fmt; // esto es lo que leerá tu XML
             }
         } catch (_e2) {}
+        
+        // ---- Mesa / Restaurante ----
+        try {
+            if (this.pos && this.pos.table) {
+                // Nombre de la mesa (ej: Terraza 4)
+                result.table_name = this.pos.table.name || "";
+                // Piso / salón (opcional)
+                result.table_floor = this.pos.table.floor ? this.pos.table.floor.name : "";
+                // Cantidad de comensales (asientos configurados en la mesa)
+                result.guests = this.pos.table.seats || 0;
+            } else {
+                result.table_name = "";
+                result.table_floor = "";
+                result.guests = 0;
+            }
+        } catch (_e3) {
+            // No romper el recibo si algo falla
+        }
 
         // Sonda opcional para verificar que cargó el patch
         result._patch_probe = "OK";
