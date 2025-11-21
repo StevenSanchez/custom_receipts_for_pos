@@ -148,8 +148,8 @@
                     </t>
 
                     <br/>
-                    
-                    <!-- MESA / RESTAURANTE -->
+
+                    <!-- MESA / RESTAURANTE Funcional--> 
                     <t t-if="props.data.table_name">
                         <div class="pos-receipt-order-data">
                             Mesa: <t t-esc="props.data.table_name"/>
