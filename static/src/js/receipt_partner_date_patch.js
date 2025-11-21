@@ -51,6 +51,20 @@ patch(Order.prototype, {
             }
         } catch (_e1) {}
 
+        // ---- Mesa (POS Restaurante) ----
+        try {
+            if (this.table) {
+                // Nombre de la mesa directo en el resultado
+                result.table_name = this.table.name;
+
+                // Y también dentro de headerData, por si lo quieres ahí
+                if (!result.headerData) {
+                    result.headerData = {};
+                }
+                result.headerData.table_name = this.table.name;
+            }
+        } catch (_e_table) {}
+
         // ---- Fecha/hora original de la venta ----
         try {
             var d = null;
@@ -60,7 +74,8 @@ patch(Order.prototype, {
             else if (this.date) { d = this.date; }
             var fmt = _formatDateToString(d);
             if (fmt) {
-                result.date = fmt; // esto es lo que leerá tu XML
+                // esto es lo que leerá tu XML como "Fecha"
+                result.date = fmt;
             }
         } catch (_e2) {}
 
