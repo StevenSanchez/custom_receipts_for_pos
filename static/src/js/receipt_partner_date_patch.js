@@ -3,87 +3,36 @@
 import { patch } from "@web/core/utils/patch";
 import { Order } from "@point_of_sale/app/store/models";
 
-// Guarda referencia al método original
+// Guardamos el original
 const _super_export_for_printing = Order.prototype.export_for_printing;
 
-function _formatDateToString(d) {
-    if (!d) { return ""; }
-    try {
-        if (typeof d === "string") {
-            // si viene "2025-11-04T16:24:00Z" déjalo legible
-            return d.replace("T", " ").replace("Z", "");
-        }
-        if (typeof d === "number") {
-            d = new Date(d);
-        }
-        if (!(d instanceof Date)) { return ""; }
-        var yyyy = String(d.getFullYear());
-        var mm = String(d.getMonth() + 1); if (mm.length === 1) { mm = "0" + mm; }
-        var dd = String(d.getDate());      if (dd.length === 1) { dd = "0" + dd; }
-        var hh = String(d.getHours());     if (hh.length === 1) { hh = "0" + hh; }
-        var mi = String(d.getMinutes());   if (mi.length === 1) { mi = "0" + mi; }
-        var ss = String(d.getSeconds());   if (ss.length === 1) { ss = "0" + ss; }
-        return yyyy + "-" + mm + "-" + dd + " " + hh + ":" + mi + ":" + ss;
-    } catch (_e) {
-        return "";
-    }
-}
-
 patch(Order.prototype, {
-    export_for_printing: function () {
-        // Llama al original
-        var result = _super_export_for_printing.apply(this, arguments);
+    export_for_printing() {
+        // Llamamos al original para no romper nada del módulo
+        const result = _super_export_for_printing.apply(this, arguments);
 
-        // ---- Cliente ----
-        try {
-            var partner = null;
-            if (this.get_partner) {
-                partner = this.get_partner();
-            }
-            if (partner) {
-                result.client = {
-                    id: partner.id,
-                    name: partner.name || "",
-                    phone: partner.phone || partner.mobile || ""
-                };
-                // string simple por si lo usas en el XML
-                result.customer = partner.name || "";
-            }
-        } catch (_e1) {}
+        // =====================
+        //  MESA (RESTAURANTE)
+        // =====================
+        let table = null;
 
-        // ---- Fecha/hora original de la venta ----
-        try {
-            var d = null;
-            if (this.date_order) { d = this.date_order; }
-            else if (this.validation_date) { d = this.validation_date; }
-            else if (this.creationDate) { d = this.creationDate; }
-            else if (this.date) { d = this.date; }
-            var fmt = _formatDateToString(d);
-            if (fmt) {
-                result.date = fmt; // esto es lo que leerá tu XML
-            }
-        } catch (_e2) {}
-        
-        // ---- Mesa / Restaurante ----
-        try {
-            if (this.pos && this.pos.table) {
-                // Nombre de la mesa (ej: Terraza 4)
-                result.table_name = this.pos.table.name || "";
-                // Piso / salón (opcional)
-                result.table_floor = this.pos.table.floor ? this.pos.table.floor.name : "";
-                // Cantidad de comensales (asientos configurados en la mesa)
-                result.guests = this.pos.table.seats || 0;
-            } else {
-                result.table_name = "";
-                result.table_floor = "";
-                result.guests = 0;
-            }
-        } catch (_e3) {
-            // No romper el recibo si algo falla
+        // Según cómo venga en la sesión, probamos varias opciones
+        if (this.table) {
+            // Odoo suele guardar la mesa en this.table
+            table = this.table;
+        } else if (this.pos && this.pos.table) {
+            // Fallback por si viene en this.pos.table
+            table = this.pos.table;
         }
 
-        // Sonda opcional para verificar que cargó el patch
-        result._patch_probe = "OK";
+        if (table) {
+            // Nombre de la mesa (ej: "Mesa 4", "Terraza 2", etc.)
+            result.table_name = table.name || "";
+        } else {
+            result.table_name = "";
+        }
+
+        // Si quieres luego podemos añadir floor / comensales aquí
 
         return result;
     },

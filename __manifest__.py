@@ -43,8 +43,9 @@
     ],
     'assets': {
         'point_of_sale._assets_pos': [
-            'custom_receipts_for_pos/static/src/js/receipt_design.js',
-            'custom_receipts_for_pos/static/src/xml/order_receipt.xml',
+        'custom_receipts_for_pos/static/src/js/receipt_design.js',
+        'custom_receipts_for_pos/static/src/js/receipt_partner_date_patch.js',
+        'custom_receipts_for_pos/static/src/xml/order_receipt.xml',
         ],
     },
     'images': ['static/description/banner.png'],
